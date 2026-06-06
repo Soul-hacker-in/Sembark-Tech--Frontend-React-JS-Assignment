@@ -21,11 +21,11 @@ export const getCategories = async (): Promise<Category[]> => {
             image = parsed[0];
           }
         } catch {
-          image = image.replace(/[\[\]"']/g, '');
+          image = image.replace(/[[\]"']/g, '');
         }
       }
       
-      image = image.replace(/[\[\]"']/g, '').replace(/\\/g, '').trim();
+      image = image.replace(/[[\]"']/g, '').replace(/\\/g, '').trim();
       
       if (!image || !image.startsWith('http') || image.includes('pravatar.cc')) {
         image = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=600&auto=format&fit=crop';

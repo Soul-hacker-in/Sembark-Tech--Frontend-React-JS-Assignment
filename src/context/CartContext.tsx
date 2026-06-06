@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { Product, CartItem } from '../types/product';

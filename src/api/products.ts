@@ -17,11 +17,11 @@ export const sanitizeImageUrls = (images: string[]): string[] => {
           clean = parsed[0];
         }
       } catch {
-        clean = clean.replace(/[\[\]"']/g, '');
+        clean = clean.replace(/[[\]"']/g, '');
       }
     }
 
-    clean = clean.replace(/[\[\]"']/g, '').replace(/\\/g, '').trim();
+    clean = clean.replace(/[[\]"']/g, '').replace(/\\/g, '').trim();
 
     if (!clean || !clean.startsWith('http')) {
       return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop';
@@ -31,8 +31,24 @@ export const sanitizeImageUrls = (images: string[]): string[] => {
   });
 };
 
-export const getProducts = async (): Promise<Product[]> => {
-  const response = await fetch(`${BASE_URL}/products`);
+export interface ProductFilterParams {
+  categoryId?: number;
+  title?: string;
+}
+
+export const getProducts = async (filters?: ProductFilterParams): Promise<Product[]> => {
+  const params = new URLSearchParams();
+  if (filters?.categoryId !== undefined) {
+    params.set('categoryId', String(filters.categoryId));
+  }
+  if (filters?.title) {
+    params.set('title', filters.title);
+  }
+
+  const queryString = params.toString();
+  const url = queryString ? `${BASE_URL}/products?${queryString}` : `${BASE_URL}/products`;
+
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error('Failed to fetch products');
   }

@@ -10,19 +10,34 @@ import { SlidersHorizontal, X, RotateCcw } from 'lucide-react';
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { products, categories, loading, error } = useProducts();
 
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [sortOption, setSortOption] = useState<SortOption>('default');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  // Parse initial query params to prevent double fetch on mount
+  const initialParams = useMemo(() => {
+    const { categories: urlCats, sort: urlSort, search: urlSearch } = parseQueryParams(location.search);
+    return {
+      categories: urlCats.map(c => c.toLowerCase()),
+      sort: urlSort as SortOption,
+      search: urlSearch,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialParams.categories);
+  const [sortOption, setSortOption] = useState<SortOption>(initialParams.sort);
+  const [searchQuery, setSearchQuery] = useState<string>(initialParams.search);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
+  // Sync state with location search (important for back/forward navigation)
   useEffect(() => {
     const { categories: urlCats, sort: urlSort, search: urlSearch } = parseQueryParams(location.search);
-    setSelectedCategories(urlCats.map(c => c.toLowerCase()));
-    setSortOption(urlSort as SortOption);
-    setSearchQuery(urlSearch);
+    Promise.resolve().then(() => {
+      setSelectedCategories(urlCats.map(c => c.toLowerCase()));
+      setSortOption(urlSort as SortOption);
+      setSearchQuery(urlSearch);
+    });
   }, [location.search]);
+
+  const { products, categories, loading, error } = useProducts(selectedCategories, searchQuery);
 
   const updateUrl = (cats: string[], sort: SortOption, search: string) => {
     const queryString = stringifyQueryParams({
@@ -72,22 +87,7 @@ const Home: React.FC = () => {
   };
 
   const filteredProducts = useMemo(() => {
-    let result = [...products];
-
-    if (searchQuery.trim() !== '') {
-      const query = searchQuery.toLowerCase().trim();
-      result = result.filter(
-        (p) =>
-          p.title.toLowerCase().includes(query) ||
-          p.description.toLowerCase().includes(query)
-      );
-    }
-
-    if (selectedCategories.length > 0) {
-      result = result.filter(
-        (p) => p.category && selectedCategories.includes(p.category.name.toLowerCase())
-      );
-    }
+    const result = [...products];
 
     switch (sortOption) {
       case 'price-asc':
@@ -107,7 +107,7 @@ const Home: React.FC = () => {
     }
 
     return result;
-  }, [products, searchQuery, selectedCategories, sortOption]);
+  }, [products, sortOption]);
 
   return (
     <div className="max-w-[95%] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
