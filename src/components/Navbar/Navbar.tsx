@@ -1,28 +1,13 @@
-import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Sun, Moon, ShoppingBag } from 'lucide-react';
+import { ShoppingCart, } from 'lucide-react';
 import { useCart } from '../../hooks/useCart';
 
 export const Navbar: React.FC = () => {
   const { totalItems } = useCart();
   const location = useLocation();
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      return savedTheme === 'dark';
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  
 
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDarkMode]);
+  
 
   return (
     <header className="sticky top-0 z-50 glass shadow-sm transition-colors duration-300">
