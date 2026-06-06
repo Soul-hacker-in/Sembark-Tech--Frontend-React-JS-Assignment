@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useProducts } from '../../hooks/useProducts';
 import { CategoryFilter } from '../../components/CategoryFilter/CategoryFilter';
@@ -37,7 +37,41 @@ const Home: React.FC = () => {
     });
   }, [location.search]);
 
-  const { products, categories, loading, error } = useProducts(selectedCategories, searchQuery);
+  const {
+    products,
+    categories,
+    loading,
+    loadingMore,
+    error,
+    hasMore,
+    loadMore,
+  } = useProducts(selectedCategories, searchQuery);
+
+  const loaderRef = useRef<HTMLDivElement | null>(null);
+
+  // Trigger loading of more items when scroll reaches the bottom
+  useEffect(() => {
+    const currentLoader = loaderRef.current;
+    if (!currentLoader) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && hasMore && !loading && !loadingMore) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(currentLoader);
+
+    return () => {
+      if (currentLoader) {
+        observer.unobserve(currentLoader);
+      }
+    };
+  }, [loadMore, hasMore, loading, loadingMore]);
 
   const updateUrl = (cats: string[], sort: SortOption, search: string) => {
     const queryString = stringifyQueryParams({
@@ -157,8 +191,23 @@ const Home: React.FC = () => {
             />
           </div>
 
-          <main className="lg:col-span-9">
+          <main className="lg:col-span-9 space-y-6">
             <ProductGrid products={filteredProducts} isLoading={loading} />
+            
+            {/* Infinite Scroll Loader Target */}
+            <div ref={loaderRef} className="py-6 flex justify-center">
+              {loadingMore && (
+                <div className="flex items-center justify-center gap-2 text-brand-600 dark:text-brand-400 font-semibold text-sm">
+                  <div className="h-5 w-5 border-2 border-brand-600 dark:border-brand-400 border-t-transparent rounded-full animate-spin" />
+                  <span>Loading more products...</span>
+                </div>
+              )}
+              {!hasMore && filteredProducts.length > 0 && (
+                <p className="text-gray-400 dark:text-slate-500 text-xs font-medium">
+                  You have viewed all products
+                </p>
+              )}
+            </div>
           </main>
         </div>
       )}

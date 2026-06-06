@@ -34,6 +34,8 @@ export const sanitizeImageUrls = (images: string[]): string[] => {
 export interface ProductFilterParams {
   categoryId?: number;
   title?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export const getProducts = async (filters?: ProductFilterParams): Promise<Product[]> => {
@@ -43,6 +45,12 @@ export const getProducts = async (filters?: ProductFilterParams): Promise<Produc
   }
   if (filters?.title) {
     params.set('title', filters.title);
+  }
+  if (filters?.limit !== undefined) {
+    params.set('limit', String(filters.limit));
+  }
+  if (filters?.offset !== undefined) {
+    params.set('offset', String(filters.offset));
   }
 
   const queryString = params.toString();
